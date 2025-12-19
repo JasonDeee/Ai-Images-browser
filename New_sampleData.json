@@ -1,0 +1,256 @@
+{
+  "categories": [
+    {
+      "id": "female",
+      "name": "Female",
+      "sections": [
+        {
+          "id": "professional",
+          "title": "Professional",
+          "prompt": "Perform a hard face replacement: use the identity features from Image 1 (eyes, nose, mouth, jaw, smile, glasses) and completely remove the original facial pixels in Image 2, then inject the new face and re-texture it to match Image 2's exact lighting, shadows, and skin tones while keeping all hair, clothing, and background of Image 2 unchanged; do not return the original Image 2 face under any circumstance.",
+          "items": [
+            {
+              "id": "professional_1",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            },
+            {
+              "id": "professional_2",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            },
+            {
+              "id": "professional_3",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            }
+          ]
+        },
+        {
+          "id": "studio",
+          "title": "Studio",
+          "prompt": "Studio portrait of elegant woman, professional lighting setup, clean background, fashion photography",
+          "items": [
+            {
+              "id": "studio_1",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            },
+            {
+              "id": "studio_2",
+              "image_link": "https://clxteam.github.io/pixshot/img10.png"
+            },
+            {
+              "id": "studio_3",
+              "image_link": "https://clxteam.github.io/pixshot/img2.png"
+            }
+          ]
+        },
+        {
+          "id": "casual",
+          "title": "Casual",
+          "prompt": "Casual everyday style, relaxed pose, natural environment, comfortable clothing",
+          "items": [
+            {
+              "id": "casual_1",
+              "image_link": "https://clxteam.github.io/pixshot/img9.png"
+            },
+            {
+              "id": "casual_2",
+              "image_link": "https://clxteam.github.io/pixshot/img9.png"
+            },
+            {
+              "id": "casual_3",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "male",
+      "name": "Male",
+      "sections": [
+        {
+          "id": "business",
+          "title": "Business",
+          "prompt": "Professional businessman in formal suit, corporate office, confident stance, executive style",
+          "items": [
+            {
+              "id": "business_1",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            },
+            {
+              "id": "business_2",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            },
+            {
+              "id": "business_3",
+              "image_link": "https://clxteam.github.io/pixshot/img9.png"
+            }
+          ]
+        },
+        {
+          "id": "casual",
+          "title": "Casual",
+          "prompt": "Casual menswear, relaxed fit, everyday style, comfortable setting",
+          "items": [
+            {
+              "id": "casual_1",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            },
+            {
+              "id": "casual_2",
+              "image_link": "https://clxteam.github.io/pixshot/img8.png"
+            },
+            {
+              "id": "casual_3",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            }
+          ]
+        },
+        {
+          "id": "sports",
+          "title": "Sports",
+          "prompt": "Athletic sportswear, active pose, gym or outdoor sports setting, energetic vibe",
+          "items": [
+            {
+              "id": "sports_1",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            },
+            {
+              "id": "sports_2",
+              "image_link": "https://clxteam.github.io/pixshot/img9.png"
+            },
+            {
+              "id": "sports_3",
+              "image_link": "https://clxteam.github.io/pixshot/img7.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "girl",
+      "name": "Girl",
+      "sections": [
+        {
+          "id": "playful",
+          "title": "Playful",
+          "prompt": "Playful young girl, colorful outfit, fun pose, cheerful expression, bright setting",
+          "items": [
+            {
+              "id": "playful_1",
+              "image_link": "https://clxteam.github.io/pixshot/img4.png"
+            },
+            {
+              "id": "playful_2",
+              "image_link": "https://clxteam.github.io/pixshot/img4.png"
+            },
+            {
+              "id": "playful_3",
+              "image_link": "https://clxteam.github.io/pixshot/img8.png"
+            }
+          ]
+        },
+        {
+          "id": "school",
+          "title": "School",
+          "prompt": "School uniform style, educational setting, friendly smile, youthful appearance",
+          "items": [
+            {
+              "id": "school_1",
+              "image_link": "https://clxteam.github.io/pixshot/img2.png"
+            },
+            {
+              "id": "school_2",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            },
+            {
+              "id": "school_3",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            }
+          ]
+        },
+        {
+          "id": "party",
+          "title": "Party",
+          "prompt": "Party dress, festive setting, joyful expression, celebration atmosphere",
+          "items": [
+            {
+              "id": "party_1",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            },
+            {
+              "id": "party_2",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            },
+            {
+              "id": "party_3",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "boy",
+      "name": "Boy",
+      "sections": [
+        {
+          "id": "sports",
+          "title": "Sports",
+          "prompt": "Young boy in sports uniform, athletic pose, sports field setting, energetic vibe",
+          "items": [
+            {
+              "id": "sports_1",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            },
+            {
+              "id": "sports_2",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            },
+            {
+              "id": "sports_3",
+              "image_link": "https://clxteam.github.io/pixshot/img1.png"
+            }
+          ]
+        },
+        {
+          "id": "adventure",
+          "title": "Adventure",
+          "prompt": "Adventure outfit, explorer style, outdoor setting, adventurous expression",
+          "items": [
+            {
+              "id": "adventure_1",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            },
+            {
+              "id": "adventure_2",
+              "image_link": "https://clxteam.github.io/pixshot/img4.png"
+            },
+            {
+              "id": "adventure_3",
+              "image_link": "https://clxteam.github.io/pixshot/img5.png"
+            }
+          ]
+        },
+        {
+          "id": "school",
+          "title": "School",
+          "prompt": "School uniform, educational environment, friendly smile, student style",
+          "items": [
+            {
+              "id": "school_1",
+              "image_link": "https://clxteam.github.io/pixshot/img6.png"
+            },
+            {
+              "id": "school_2",
+              "image_link": "https://clxteam.github.io/pixshot/img8.png"
+            },
+            {
+              "id": "school_3",
+              "image_link": "https://clxteam.github.io/pixshot/img3.png"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
