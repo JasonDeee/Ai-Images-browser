@@ -303,12 +303,27 @@
       async function loadData() {
         try {
           const response = await fetch("sampleData.json");
+          if (!response.ok) {
+            throw new Error("Local file not found");
+          }
           data = await response.json();
           renderHome();
         } catch (error) {
-          console.error("Error loading data:", error);
-          document.getElementById("app").innerHTML =
-            '<div class="empty-state"><h3>Error loading data</h3></div>';
+          console.log("Local file not found, trying remote URL...");
+          try {
+            const response = await fetch(
+              "https://jasondeee.github.io/Ai-Images-browser/sampleData.json"
+            );
+            if (!response.ok) {
+              throw new Error("Remote file not found");
+            }
+            data = await response.json();
+            renderHome();
+          } catch (remoteError) {
+            console.error("Error loading data:", remoteError);
+            document.getElementById("app").innerHTML =
+              '<div class="empty-state"><h3>Error loading data</h3><p>Could not load from local or remote source</p></div>';
+          }
         }
       }
 
