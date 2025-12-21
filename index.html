@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Images Browser</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        text-align: center;
+        padding: 40px 0 30px;
+        border-bottom: 1px solid #333;
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .filter-bar {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+        padding: 20px;
+        background: #1a1a1a;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .filter-btn {
+        padding: 12px 28px;
+        background: #2a2a2a;
+        color: #e0e0e0;
+        border: 2px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .filter-btn:hover {
+        background: #3a3a3a;
+        border-color: #667eea;
+      }
+
+      .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+      }
+
+      .section {
+        margin-bottom: 50px;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #333;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #fff;
+      }
+
+      .view-more-btn {
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .view-more-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .back-btn {
+        padding: 12px 28px;
+        background: #2a2a2a;
+        color: #e0e0e0;
+        border: 2px solid #3a3a3a;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .back-btn:hover {
+        background: #3a3a3a;
+        border-color: #667eea;
+      }
+
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .image-card {
+        position: relative;
+        aspect-ratio: 3/4;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        background: #1a1a1a;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .image-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .image-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .image-card:hover img {
+        transform: scale(1.05);
+      }
+
+      .image-card.loading {
+        background: linear-gradient(
+          90deg,
+          #1a1a1a 25%,
+          #2a2a2a 50%,
+          #1a1a1a 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .lightbox.active {
+        display: flex;
+      }
+
+      .lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+      }
+
+      .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      }
+
+      .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: #667eea;
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .lightbox-close:hover {
+        background: #764ba2;
+        transform: rotate(90deg);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+      }
+
+      .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        .filter-bar {
+          padding: 15px;
+        }
+
+        .filter-btn {
+          padding: 10px 20px;
+          font-size: 0.9rem;
+        }
+
+        .section-title {
+          font-size: 1.4rem;
+        }
+
+        .image-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>AI Images Browser</h1>
+      </header>
+
+      <div id="app"></div>
+    </div>
+
+    <div id="lightbox" class="lightbox">
+      <div class="lightbox-content">
+        <button class="lightbox-close" onclick="closeLightbox()">×</button>
+        <img id="lightbox-img" src="" alt="" />
+      </div>
+    </div>
+
+    <script>
+      let data = null;
+      let currentCategory = null;
+      let currentSection = null;
+
+      // Load data
+      async function loadData() {
+        try {
+          const response = await fetch("sampleData.json");
+          data = await response.json();
+          renderHome();
+        } catch (error) {
+          console.error("Error loading data:", error);
+          document.getElementById("app").innerHTML =
+            '<div class="empty-state"><h3>Error loading data</h3></div>';
+        }
+      }
+
+      // Render home page
+      function renderHome() {
+        currentSection = null;
+        const categories = data.categories;
+
+        if (!currentCategory) {
+          currentCategory = categories[0].id;
+        }
+
+        const category = categories.find((c) => c.id === currentCategory);
+
+        let html = '<div class="filter-bar">';
+        categories.forEach((cat) => {
+          html += `<button class="filter-btn ${
+            cat.id === currentCategory ? "active" : ""
+          }" 
+                         onclick="switchCategory('${cat.id}')">${
+            cat.name
+          }</button>`;
+        });
+        html += "</div>";
+
+        category.sections.forEach((section) => {
+          const itemsToShow = section.items.slice(0, 5);
+
+          html += `
+                    <div class="section">
+                        <div class="section-header">
+                            <h2 class="section-title">${section.title}</h2>
+                            ${
+                              section.items.length > 5
+                                ? `<button class="view-more-btn" onclick="viewSection('${section.id}')">View More</button>`
+                                : ""
+                            }
+                        </div>
+                        ${
+                          section.items.length > 0
+                            ? `<div class="image-grid">
+                                ${itemsToShow
+                                  .map(
+                                    (item) => `
+                                    <div class="image-card" onclick="openLightbox('${item.image_link}')">
+                                        <img src="${item.image_link}" alt="${item.id}" loading="lazy">
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                            </div>`
+                            : '<div class="empty-state"><h3>No images available</h3></div>'
+                        }
+                    </div>
+                `;
+        });
+
+        document.getElementById("app").innerHTML = html;
+      }
+
+      // Switch category
+      function switchCategory(categoryId) {
+        currentCategory = categoryId;
+        renderHome();
+      }
+
+      // View section detail
+      function viewSection(sectionId) {
+        currentSection = sectionId;
+        const category = data.categories.find((c) => c.id === currentCategory);
+        const section = category.sections.find((s) => s.id === sectionId);
+
+        let html = `
+                <button class="back-btn" onclick="renderHome()">
+                    <span>←</span> Back to Home
+                </button>
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">${section.title}</h2>
+                    </div>
+                    <div class="image-grid" id="section-grid">
+            `;
+
+        // Initial load - first 20 images
+        const initialItems = section.items.slice(0, 20);
+        initialItems.forEach((item) => {
+          html += `
+                    <div class="image-card" onclick="openLightbox('${item.image_link}')">
+                        <img src="${item.image_link}" alt="${item.id}" loading="lazy">
+                    </div>
+                `;
+        });
+
+        html += "</div></div>";
+        document.getElementById("app").innerHTML = html;
+
+        // Setup lazy loading for remaining images
+        if (section.items.length > 20) {
+          setupLazyLoading(section.items.slice(20));
+        }
+      }
+
+      // Setup lazy loading
+      let loadedIndex = 0;
+      let allItems = [];
+
+      function setupLazyLoading(items) {
+        allItems = items;
+        loadedIndex = 0;
+
+        window.addEventListener("scroll", handleScroll);
+        handleScroll(); // Check initial scroll position
+      }
+
+      function handleScroll() {
+        if (loadedIndex >= allItems.length) {
+          window.removeEventListener("scroll", handleScroll);
+          return;
+        }
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const threshold = document.documentElement.scrollHeight - 500;
+
+        if (scrollPosition > threshold) {
+          loadMoreImages();
+        }
+      }
+
+      function loadMoreImages() {
+        const grid = document.getElementById("section-grid");
+        if (!grid) return;
+
+        const itemsToLoad = allItems.slice(loadedIndex, loadedIndex + 20);
+
+        itemsToLoad.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "image-card";
+          card.onclick = () => openLightbox(item.image_link);
+          card.innerHTML = `<img src="${item.image_link}" alt="${item.id}" loading="lazy">`;
+          grid.appendChild(card);
+        });
+
+        loadedIndex += itemsToLoad.length;
+      }
+
+      // Lightbox functions
+      function openLightbox(imageUrl) {
+        document.getElementById("lightbox-img").src = imageUrl;
+        document.getElementById("lightbox").classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeLightbox() {
+        document.getElementById("lightbox").classList.remove("active");
+        document.body.style.overflow = "auto";
+      }
+
+      // Close lightbox on background click
+      document
+        .getElementById("lightbox")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeLightbox();
+          }
+        });
+
+      // Close lightbox on ESC key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          closeLightbox();
+        }
+      });
+
+      // Initialize
+      loadData();
+    </script>
+  </body>
+</html>
