@@ -1266,19 +1266,166 @@
           "id": "playful",
           "title": "Playful",
           "prompt": "Playful young girl, colorful outfit, fun pose, cheerful expression, bright setting",
-          "items": []
+          "items": [
+            {
+              "id": "playful_1",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Cute_girl_with_202512221107 (1).jpeg"
+            },
+            {
+              "id": "playful_2",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Cute_girl_with_202512221107.jpeg"
+            },
+            {
+              "id": "playful_3",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Girl_in_tutu_202512221110 (1).jpeg"
+            },
+            {
+              "id": "playful_4",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Girl_in_tutu_202512221110.jpeg"
+            },
+            {
+              "id": "playful_5",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Girl_in_tutu_202512221111.jpeg"
+            },
+            {
+              "id": "playful_6",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Playful_portrait_of_202512221107 (1).jpeg"
+            },
+            {
+              "id": "playful_7",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Playful_portrait_of_202512221107 (2).jpeg"
+            },
+            {
+              "id": "playful_8",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Playful_portrait_of_202512221107.jpeg"
+            },
+            {
+              "id": "playful_9",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Young_girl_in_202512221105 (1).jpeg"
+            },
+            {
+              "id": "playful_10",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Young_girl_in_202512221105 (2).jpeg"
+            },
+            {
+              "id": "playful_11",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Young_girl_in_202512221105.jpeg"
+            },
+            {
+              "id": "playful_12",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/playful/Young_girl_with_202512221110.jpeg"
+            }
+          ]
         },
         {
           "id": "school",
           "title": "School",
           "prompt": "School uniform style, educational setting, friendly smile, youthful appearance",
-          "items": []
+          "items": [
+            {
+              "id": "school_1",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Girl_student_with_202512221113 (1).jpeg"
+            },
+            {
+              "id": "school_2",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Girl_student_with_202512221113 (2).jpeg"
+            },
+            {
+              "id": "school_3",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Girl_student_with_202512221113.jpeg"
+            },
+            {
+              "id": "school_4",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/School_portrait_of_202512221117 (1).jpeg"
+            },
+            {
+              "id": "school_5",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/School_portrait_of_202512221117.jpeg"
+            },
+            {
+              "id": "school_6",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Young_girl_in_202512221113 (1).jpeg"
+            },
+            {
+              "id": "school_7",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Young_girl_in_202512221113.jpeg"
+            },
+            {
+              "id": "school_8",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Young_girl_with_202512221117 (1).jpeg"
+            },
+            {
+              "id": "school_9",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Young_girl_with_202512221117 (2).jpeg"
+            },
+            {
+              "id": "school_10",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/school/Young_girl_with_202512221117.jpeg"
+            }
+          ]
         },
         {
           "id": "party",
           "title": "Party",
           "prompt": "Party dress, festive setting, joyful expression, celebration atmosphere",
-          "items": []
+          "items": [
+            {
+              "id": "party_1",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Cute_girl_wearing_202512221101 (1).jpeg"
+            },
+            {
+              "id": "party_2",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Cute_girl_wearing_202512221101.jpeg"
+            },
+            {
+              "id": "party_3",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Girl_in_princess_202512221103.jpeg"
+            },
+            {
+              "id": "party_4",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Girl_in_princess_202512221104 (1).jpeg"
+            },
+            {
+              "id": "party_5",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Girl_in_princess_202512221104 (2).jpeg"
+            },
+            {
+              "id": "party_6",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Girl_in_princess_202512221104.jpeg"
+            },
+            {
+              "id": "party_7",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Party_little_cute_202512221105 (1).jpeg"
+            },
+            {
+              "id": "party_8",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Party_little_cute_202512221105 (2).jpeg"
+            },
+            {
+              "id": "party_9",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Party_little_cute_202512221105.jpeg"
+            },
+            {
+              "id": "party_10",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Young_girl_in_202512221101 (1).jpeg"
+            },
+            {
+              "id": "party_11",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Young_girl_in_202512221101 (2).jpeg"
+            },
+            {
+              "id": "party_12",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Young_girl_in_202512221101.jpeg"
+            },
+            {
+              "id": "party_13",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Young_girl_with_202512221102 (1).jpeg"
+            },
+            {
+              "id": "party_14",
+              "image_link": "https://jasondeee.github.io/Ai-Images-browser/girl/party/Young_girl_with_202512221102.jpeg"
+            }
+          ]
         }
       ]
     },
