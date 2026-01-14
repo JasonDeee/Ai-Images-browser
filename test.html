@@ -26,6 +26,16 @@
     .response { white-space:pre-wrap; background:#111; color:#fff; padding:10px; border-radius:6px; font-size:13px; max-height:220px; overflow:auto; }
     footer { margin-top:18px; font-size:13px; color:#555; }
     .result-image { margin-top:8px; max-width:240px; border:1px solid #ccc; border-radius:6px; }
+
+    /* Debug panel */
+    .debug-panel { margin-top:16px; background:#0b1220; color:#e6eef8; border-radius:8px; padding:12px; box-shadow:0 2px 12px rgba(0,0,0,0.2); }
+    .debug-controls { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+    .debug-log { background:#071021; color:#cfe8ff; padding:8px; border-radius:6px; font-family:monospace; font-size:12px; max-height:320px; overflow:auto; white-space:pre-wrap; border:1px solid rgba(255,255,255,0.04); }
+    .debug-meta { font-size:12px; color:#9fb7d9; margin-bottom:8px; }
+    .small { font-size:12px; color:#9fb7d9; }
+    .debug-toggle { margin-left:auto; }
+    .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.06); color:inherit; padding:6px 8px; border-radius:6px; cursor:pointer; }
+    .checkbox-inline { display:inline-flex; gap:6px; align-items:center; font-size:13px; }
   </style>
 </head>
 <body>
@@ -97,8 +107,22 @@
     </div>
   </div>
 
+  <!-- Debug panel -->
+  <div id="debugPanel" class="debug-panel" aria-live="polite">
+    <div class="debug-controls">
+      <strong class="small">Debug Log</strong>
+      <button id="clearLogBtn" class="btn-ghost">Clear</button>
+      <button id="copyLogBtn" class="btn-ghost">Copy</button>
+      <label class="checkbox-inline"><input id="autoScrollCheckbox" type="checkbox" checked /> Auto-scroll</label>
+      <label class="checkbox-inline"><input id="openOnSubmitCheckbox" type="checkbox" checked /> Open on submit</label>
+      <div class="debug-toggle"></div>
+    </div>
+    <div id="debugMeta" class="debug-meta">No logs yet.</div>
+    <div id="debugLog" class="debug-log"></div>
+  </div>
+
   <footer>
-    <p>Notes: The page sends JSON { id: <item.id>, b64_image: <base64 string without data: prefix>, caption: <text if provided> } via POST to {API_URL}/image3/edit_image. Ensure CORS and authentication on the server are configured.</p>
+    <p>Notes: The page sends JSON { id: &lt;item.id&gt;, b64_image: &lt;base64 string without data: prefix&gt;, caption: &lt;text if provided&gt; } via POST to {API_URL}/image3/edit_image. Ensure CORS and authenticatio[...]</p>
   </footer>
 
   <script>
@@ -120,9 +144,19 @@
     const resultImageWrap = document.getElementById('resultImageWrap');
     const resultImage = document.getElementById('resultImage');
 
+    // Debug elements
+    const debugLogEl = document.getElementById('debugLog');
+    const debugMetaEl = document.getElementById('debugMeta');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const copyLogBtn = document.getElementById('copyLogBtn');
+    const autoScrollCheckbox = document.getElementById('autoScrollCheckbox');
+    const openOnSubmitCheckbox = document.getElementById('openOnSubmitCheckbox');
+    const debugPanel = document.getElementById('debugPanel');
+
     let selectedItem = null;
     let selectedDatasetImgSrc = '';
 
+    // ---------- Fetch and render ----------
     async function fetchAndRender() {
       const url = dataUrlInput.value.trim();
       content.innerHTML = '<p>Loading data...</p>';
@@ -225,14 +259,13 @@
       reader.readAsDataURL(f);
     });
 
-    // Convert File -> base64 (without prefix)
+    // ---------- Utility: File -> base64 (without prefix) ----------
     function fileToBase64WithoutPrefix(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(new Error('Failed to read file'));
         reader.onload = () => {
           const result = reader.result;
-          // result is like "data:image/png;base64,AAA..."
           const idx = result.indexOf(',');
           if (idx >= 0) resolve(result.substring(idx + 1));
           else resolve(result);
@@ -241,6 +274,50 @@
       });
     }
 
+    // ---------- Debug logging helpers ----------
+    function ts() {
+      return new Date().toISOString();
+    }
+
+    function appendDebugLine(text) {
+      const line = '[' + ts() + '] ' + text;
+      debugLogEl.textContent += line + '\n';
+      debugMetaEl.textContent = 'Last entry: ' + ts();
+      if (autoScrollCheckbox.checked) {
+        debugLogEl.scrollTop = debugLogEl.scrollHeight;
+      }
+    }
+
+    function appendDebugObject(label, obj) {
+      const header = '[' + ts() + '] ' + label + ':';
+      let body;
+      try {
+        body = JSON.stringify(obj, null, 2);
+      } catch (e) {
+        body = String(obj);
+      }
+      debugLogEl.textContent += header + '\n' + body + '\n\n';
+      debugMetaEl.textContent = 'Last entry: ' + ts();
+      if (autoScrollCheckbox.checked) {
+        debugLogEl.scrollTop = debugLogEl.scrollHeight;
+      }
+    }
+
+    clearLogBtn.addEventListener('click', () => {
+      debugLogEl.textContent = '';
+      debugMetaEl.textContent = 'Cleared at: ' + ts();
+    });
+
+    copyLogBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(debugLogEl.textContent);
+        debugMetaEl.textContent = 'Copied to clipboard at: ' + ts();
+      } catch (e) {
+        debugMetaEl.textContent = 'Copy failed: ' + (e && e.message);
+      }
+    });
+
+    // ---------- Submit logic with enhanced debug ----------
     submitBtn.addEventListener('click', async () => {
       if (!selectedItem) {
         alert('No item selected.');
@@ -252,61 +329,128 @@
         return;
       }
 
+      // Optionally open debug panel on submit
+      if (openOnSubmitCheckbox.checked) {
+        debugPanel.scrollIntoView({ behavior: 'smooth' });
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting...';
       responseArea.textContent = 'Preparing image...';
 
+      const startTime = Date.now();
+
       try {
         const b64 = await fileToBase64WithoutPrefix(f);
+
+        // Build payload
         const payload = {
           id: selectedItem,
           b64_image: b64,
           caption: captionInput.value || ''
         };
 
-        // Build headers
+        // Try parse headers input; log attempt
         let extraHeaders = {};
         try {
           extraHeaders = JSON.parse(headersInput.value || '{}');
+          appendDebugObject('Parsed extra headers', extraHeaders);
         } catch (e) {
+          appendDebugLine('Headers JSON invalid: ' + e.message);
           alert('Headers JSON invalid. Please fix or clear it.');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit to Edit Image endpoint';
           return;
         }
 
+        appendDebugLine('Preparing request to Edit Image endpoint');
+        appendDebugLine('Selected dataset id: ' + selectedItem);
+        appendDebugObject('Dataset preview image link', { selectedDatasetImgSrc });
+        appendDebugObject('File metadata', { name: f.name, type: f.type, size: f.size });
+        appendDebugLine('Base64 image length (chars): ' + (b64 ? b64.length : 0));
+        appendDebugObject('Payload (object)', Object.assign({}, payload, { b64_image: '[base64 omitted]' }));
+
         responseArea.textContent = 'Sending request to server...';
 
         const endpoint = (apiUrlInput.value.replace(/\/$/, '')) + '/image3/edit_image';
+        appendDebugLine('Endpoint: ' + endpoint);
 
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          mode: 'cors',
-          headers: Object.assign({ 'Content-Type': 'application/json' }, extraHeaders),
-          body: JSON.stringify(payload)
-        });
+        const headersForFetch = Object.assign({ 'Content-Type': 'application/json' }, extraHeaders);
+        appendDebugObject('Headers sent', headersForFetch);
 
-        const text = await res.text();
+        // Perform fetch and measure timing
+        const fetchStart = Date.now();
+        let res, resText;
+        try {
+          res = await fetch(endpoint, {
+            method: 'POST',
+            mode: 'cors',
+            headers: headersForFetch,
+            body: JSON.stringify(payload)
+          });
+        } catch (networkErr) {
+          const elapsed = Date.now() - fetchStart;
+          appendDebugLine('Network error during fetch: ' + (networkErr && networkErr.message));
+          appendDebugObject('Network error (full)', networkErr && networkErr.stack ? { message: networkErr.message, stack: networkErr.stack } : networkErr);
+          responseArea.textContent = 'Network error: ' + (networkErr && networkErr.message);
+          throw networkErr;
+        }
+        const fetchElapsed = Date.now() - fetchStart;
+        appendDebugLine('Fetch completed in ' + fetchElapsed + ' ms. HTTP status: ' + res.status + ' ' + res.statusText);
+
+        // Collect response headers
+        const resHeaders = {};
+        try {
+          res.headers.forEach((v, k) => { resHeaders[k] = v; });
+        } catch (e) {
+          // older browsers may not support forEach on Headers
+          for (const pair of res.headers.entries()) {
+            resHeaders[pair[0]] = pair[1];
+          }
+        }
+        appendDebugObject('Response headers', resHeaders);
+
+        // Read response text (full) and log
+        resText = await res.text();
+        appendDebugObject('Response body (text)', resText);
+
+        // Try to parse JSON
         let json = null;
-        try { json = JSON.parse(text); } catch (e) { /* not json */ }
+        try {
+          json = JSON.parse(resText);
+          appendDebugObject('Response body (parsed JSON)', json);
+        } catch (e) {
+          appendDebugLine('Response body is not valid JSON: ' + (e && e.message));
+        }
 
+        // Outcome handling (existing UI)
         if (res.ok) {
-          responseArea.textContent = JSON.stringify(json || text, null, 2);
+          responseArea.textContent = JSON.stringify(json || resText, null, 2);
           // If server returns result image in data[0].b64_json, show it
           if (json && json.data && json.data.length > 0 && json.data[0].b64_json) {
             const returnedB64 = json.data[0].b64_json;
             resultImage.src = 'data:image/png;base64,' + returnedB64;
             resultImageWrap.style.display = 'block';
+            appendDebugLine('Displayed returned result image (data[0].b64_json). Base64 length: ' + (returnedB64 ? returnedB64.length : 0));
           } else {
             resultImageWrap.style.display = 'none';
+            appendDebugLine('No returned result image found in response.');
           }
         } else {
-          responseArea.textContent = 'HTTP ' + res.status + '\\n' + (json ? JSON.stringify(json, null, 2) : text);
+          responseArea.textContent = 'HTTP ' + res.status + '\\n' + (json ? JSON.stringify(json, null, 2) : resText);
           resultImageWrap.style.display = 'none';
+          appendDebugLine('HTTP error: ' + res.status + '. Response written to response area.');
         }
 
+        const totalElapsed = Date.now() - startTime;
+        appendDebugLine('Total operation time: ' + totalElapsed + ' ms (including file read, encoding, fetch, processing)');
       } catch (err) {
-        responseArea.textContent = 'Error: ' + err.message;
+        // Log error with stack
+        appendDebugLine('Error: ' + (err && err.message ? err.message : String(err)));
+        if (err && err.stack) {
+          appendDebugObject('Error stack', { stack: err.stack });
+        }
+        responseArea.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit to Edit Image endpoint';
@@ -317,6 +461,10 @@
 
     // initial load
     fetchAndRender();
+
+    // initial debug meta
+    debugMetaEl.textContent = 'Ready. ' + ts();
+
   </script>
 </body>
 </html>
