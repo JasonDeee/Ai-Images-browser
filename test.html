@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test Edit Image - Image3</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 16px; background:#f7f7f7; color:#111; }
+    header { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+    input[type=text] { padding:6px 8px; width:360px; }
+    button { padding:6px 10px; cursor:pointer; }
+    .category { margin-bottom:18px; }
+    .category h2 { margin:8px 0; }
+    .section { background:#fff; padding:12px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:10px; }
+    .section h3 { margin:0 0 8px 0; font-size:16px; }
+    .items { display:flex; gap:8px; flex-wrap:wrap; }
+    .item { width:160px; text-align:center; cursor:pointer; }
+    .item img { width:160px; height:120px; object-fit:cover; border-radius:6px; border:1px solid #ddd; }
+    .item p { margin:6px 0 0 0; font-size:13px; color:#444; word-break:break-word; }
+    /* Modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
+    .modal { background:#fff; padding:18px; border-radius:8px; width:720px; max-width:95%; box-shadow:0 4px 20px rgba(0,0,0,0.2); }
+    .modal .grid { display:flex; gap:12px; }
+    .modal img { max-width:280px; max-height:200px; object-fit:contain; border:1px solid #eee; border-radius:6px; }
+    .field { margin-bottom:8px; }
+    .response { white-space:pre-wrap; background:#111; color:#fff; padding:10px; border-radius:6px; font-size:13px; max-height:220px; overflow:auto; }
+    footer { margin-top:18px; font-size:13px; color:#555; }
+    .result-image { margin-top:8px; max-width:240px; border:1px solid #ccc; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <label><strong>Sample JSON URL:</strong></label><br />
+      <input id="dataUrl" type="text" value="https://jasondeee.github.io/Ai-Images-browser/sampleData.json" />
+    </div>
+    <div>
+      <label><strong>API URL (Edit Image endpoint base):</strong></label><br />
+      <input id="apiUrl" type="text" value="https://pic88.top" />
+    </div>
+    <div style="align-self:end">
+      <button id="reloadBtn">Load data</button>
+    </div>
+  </header>
+
+  <main id="content">
+    <p>Loading data...</p>
+  </main>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal" role="document">
+      <h3 id="modalTitle">Edit Image</h3>
+      <div class="grid">
+        <div style="flex:0 0 300px;">
+          <label>Selected item (dataset):</label>
+          <div style="margin:8px 0">
+            <img id="datasetPreview" src="" alt="dataset" />
+            <p id="datasetId" style="font-size:13px; margin:6px 0 0 0; color:#333"></p>
+          </div>
+          <label>Your image to upload:</label>
+          <div style="margin:8px 0">
+            <input id="fileInput" type="file" accept="image/*" />
+            <div id="userPreviewWrap" style="margin-top:8px;">
+              <img id="userPreview" src="" alt="user" style="max-width:260px; max-height:160px; display:none; border-radius:6px; border:1px solid #eee;" />
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;">
+          <div class="field">
+            <label>Optional caption / instruction (sent as "caption"):</label>
+            <textarea id="captionInput" rows="4" style="width:100%;"></textarea>
+          </div>
+
+          <div class="field">
+            <label>Optional additional headers (JSON) — useful for auth (example: {"Authorization":"Bearer TOKEN"})</label>
+            <textarea id="headersInput" rows="4" style="width:100%;">{}</textarea>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button id="submitBtn">Submit to Edit Image endpoint</button>
+            <button id="closeBtn" style="margin-left:8px">Close</button>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label>Response:</label>
+            <div id="responseArea" class="response">No response yet.</div>
+          </div>
+
+          <div id="resultImageWrap" style="margin-top:8px; display:none;">
+            <label>Returned image:</label>
+            <div><img id="resultImage" class="result-image" src="" alt="result" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Notes: The page sends JSON { id: <item.id>, b64_image: <base64 string without data: prefix>, caption: <text if provided> } via POST to {API_URL}/image3/edit_image. Ensure CORS and authentication on the server are configured.</p>
+  </footer>
+
+  <script>
+    const content = document.getElementById('content');
+    const dataUrlInput = document.getElementById('dataUrl');
+    const apiUrlInput = document.getElementById('apiUrl');
+    const reloadBtn = document.getElementById('reloadBtn');
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const datasetPreview = document.getElementById('datasetPreview');
+    const datasetIdEl = document.getElementById('datasetId');
+    const fileInput = document.getElementById('fileInput');
+    const userPreview = document.getElementById('userPreview');
+    const captionInput = document.getElementById('captionInput');
+    const headersInput = document.getElementById('headersInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const responseArea = document.getElementById('responseArea');
+    const resultImageWrap = document.getElementById('resultImageWrap');
+    const resultImage = document.getElementById('resultImage');
+
+    let selectedItem = null;
+    let selectedDatasetImgSrc = '';
+
+    async function fetchAndRender() {
+      const url = dataUrlInput.value.trim();
+      content.innerHTML = '<p>Loading data...</p>';
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch sample JSON: ' + res.status);
+        const data = await res.json();
+        renderData(data);
+      } catch (err) {
+        content.innerHTML = '<p style="color:red">Error loading data: ' + err.message + '</p>';
+      }
+    }
+
+    function renderData(data) {
+      if (!data || !Array.isArray(data.categories)) {
+        content.innerHTML = '<p>No categories found in data.</p>';
+        return;
+      }
+      content.innerHTML = '';
+      data.categories.forEach(cat => {
+        const catEl = document.createElement('div');
+        catEl.className = 'category';
+        const catTitle = document.createElement('h2');
+        catTitle.textContent = cat.name || cat.id;
+        catEl.appendChild(catTitle);
+
+        (cat.sections || []).forEach(section => {
+          const secEl = document.createElement('div');
+          secEl.className = 'section';
+          const secTitle = document.createElement('h3');
+          secTitle.textContent = section.title || section.id;
+          secEl.appendChild(secTitle);
+
+          if (section.prompt) {
+            const promptP = document.createElement('p');
+            promptP.style.fontSize = '13px';
+            promptP.style.color = '#666';
+            promptP.textContent = section.prompt;
+            secEl.appendChild(promptP);
+          }
+
+          const itemsWrap = document.createElement('div');
+          itemsWrap.className = 'items';
+          (section.items || []).forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'item';
+            const img = document.createElement('img');
+            img.src = item.image_link;
+            img.alt = item.id;
+            img.dataset.itemId = item.id;
+            img.dataset.imageLink = item.image_link;
+            img.addEventListener('click', () => openModalForItem(item.id, item.image_link));
+            const caption = document.createElement('p');
+            caption.textContent = item.id;
+            itemEl.appendChild(img);
+            itemEl.appendChild(caption);
+            itemsWrap.appendChild(itemEl);
+          });
+
+          secEl.appendChild(itemsWrap);
+          catEl.appendChild(secEl);
+        });
+
+        content.appendChild(catEl);
+      });
+    }
+
+    function openModalForItem(itemId, imageLink) {
+      selectedItem = itemId;
+      selectedDatasetImgSrc = imageLink;
+      datasetPreview.src = imageLink;
+      datasetIdEl.textContent = 'id: ' + itemId;
+      fileInput.value = '';
+      userPreview.style.display = 'none';
+      userPreview.src = '';
+      captionInput.value = '';
+      responseArea.textContent = 'No response yet.';
+      resultImageWrap.style.display = 'none';
+      modalBackdrop.style.display = 'flex';
+      modalBackdrop.setAttribute('aria-hidden', 'false');
+    }
+
+    closeBtn.addEventListener('click', () => {
+      modalBackdrop.style.display = 'none';
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+    });
+
+    fileInput.addEventListener('change', (ev) => {
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) {
+        userPreview.style.display = 'none';
+        userPreview.src = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        userPreview.src = reader.result;
+        userPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(f);
+    });
+
+    // Convert File -> base64 (without prefix)
+    function fileToBase64WithoutPrefix(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.onload = () => {
+          const result = reader.result;
+          // result is like "data:image/png;base64,AAA..."
+          const idx = result.indexOf(',');
+          if (idx >= 0) resolve(result.substring(idx + 1));
+          else resolve(result);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedItem) {
+        alert('No item selected.');
+        return;
+      }
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) {
+        alert('Please choose an image file to upload.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      responseArea.textContent = 'Preparing image...';
+
+      try {
+        const b64 = await fileToBase64WithoutPrefix(f);
+        const payload = {
+          id: selectedItem,
+          b64_image: b64,
+          caption: captionInput.value || ''
+        };
+
+        // Build headers
+        let extraHeaders = {};
+        try {
+          extraHeaders = JSON.parse(headersInput.value || '{}');
+        } catch (e) {
+          alert('Headers JSON invalid. Please fix or clear it.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit to Edit Image endpoint';
+          return;
+        }
+
+        responseArea.textContent = 'Sending request to server...';
+
+        const endpoint = (apiUrlInput.value.replace(/\/$/, '')) + '/image3/edit_image';
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          mode: 'cors',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, extraHeaders),
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch (e) { /* not json */ }
+
+        if (res.ok) {
+          responseArea.textContent = JSON.stringify(json || text, null, 2);
+          // If server returns result image in data[0].b64_json, show it
+          if (json && json.data && json.data.length > 0 && json.data[0].b64_json) {
+            const returnedB64 = json.data[0].b64_json;
+            resultImage.src = 'data:image/png;base64,' + returnedB64;
+            resultImageWrap.style.display = 'block';
+          } else {
+            resultImageWrap.style.display = 'none';
+          }
+        } else {
+          responseArea.textContent = 'HTTP ' + res.status + '\\n' + (json ? JSON.stringify(json, null, 2) : text);
+          resultImageWrap.style.display = 'none';
+        }
+
+      } catch (err) {
+        responseArea.textContent = 'Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit to Edit Image endpoint';
+      }
+    });
+
+    reloadBtn.addEventListener('click', fetchAndRender);
+
+    // initial load
+    fetchAndRender();
+  </script>
+</body>
+</html>
