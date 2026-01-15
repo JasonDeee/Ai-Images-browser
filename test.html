@@ -336,6 +336,7 @@
   <body>
     <div class="container">
       <h1>🎨 Image3 API - Photo Gallery</h1>
+      <div id="statusMessage"></div>
       <div id="loading" class="loading">Loading gallery...</div>
       <div id="gallery-container"></div>
     </div>
@@ -385,7 +386,7 @@
 
         <button id="submitButton" class="submit-button">Generate Image</button>
 
-        <div id="statusMessage"></div>
+        <div id="modalStatusMessage"></div>
         <img id="resultImage" class="result-image" style="display: none" />
       </div>
     </div>
@@ -402,12 +403,32 @@
       let selectedItem = null;
       let userImageFile = null;
       let userImageBase64 = null;
+      let jwtToken = null;
 
       // Initialize
-      document.addEventListener("DOMContentLoaded", () => {
-        loadGallery();
-        setupModal();
+      document.addEventListener("DOMContentLoaded", async () => {
+        await initializeApp();
       });
+
+      // Initialize app - get JWT token first
+      async function initializeApp() {
+        try {
+          // Get JWT token on page load
+          showStatus("Initializing authentication...", "loading");
+          jwtToken = await getJWTToken();
+          console.log("✅ JWT token obtained successfully");
+
+          // Clear status and load gallery
+          document.getElementById("statusMessage").innerHTML = "";
+          loadGallery();
+          setupModal();
+        } catch (error) {
+          console.error("Failed to initialize:", error);
+          document.getElementById(
+            "loading"
+          ).innerHTML = `<div style="color: #ff6b6b;">Failed to initialize: ${error.message}</div>`;
+        }
+      }
 
       // Load gallery data
       async function loadGallery() {
@@ -500,7 +521,7 @@
         document.getElementById("userImageInput").value = "";
         document.getElementById("userImagePreview").style.display = "none";
         document.getElementById("captionInput").value = "";
-        document.getElementById("statusMessage").innerHTML = "";
+        document.getElementById("modalStatusMessage").innerHTML = "";
         document.getElementById("resultImage").style.display = "none";
         userImageFile = null;
         userImageBase64 = null;
@@ -578,6 +599,8 @@
       async function getAuthHeaders() {
         const timestamp = Math.floor(Date.now() / 1000);
         const signature = createSignature(IMAGE3_SECRET_KEY, timestamp);
+
+        // Get fresh token for each request
         const token = await getJWTToken();
         const requestId = generateUUID();
 
@@ -595,13 +618,13 @@
       // Handle submit
       async function handleSubmit() {
         if (!userImageFile) {
-          showStatus("Please select an image first", "error");
+          showModalStatus("Please select an image first", "error");
           return;
         }
 
         const caption = document.getElementById("captionInput").value.trim();
         if (!caption) {
-          showStatus(
+          showModalStatus(
             "Please enter a caption describing the changes you want",
             "error"
           );
@@ -610,10 +633,13 @@
 
         const submitBtn = document.getElementById("submitButton");
         submitBtn.disabled = true;
-        showStatus("Processing... This may take up to 3 minutes", "loading");
+        showModalStatus(
+          "Processing... This may take up to 3 minutes",
+          "loading"
+        );
 
         try {
-          // Get auth headers
+          // Get auth headers (will get fresh token)
           const headers = await getAuthHeaders();
 
           // Prepare form data
@@ -634,7 +660,7 @@
           const result = await response.json();
 
           if (response.ok && result.success) {
-            showStatus("✅ Image generated successfully!", "success");
+            showModalStatus("✅ Image generated successfully!", "success");
 
             // Display result image
             const resultImg = document.getElementById("resultImage");
@@ -650,18 +676,25 @@
             const errorMsg = result.error
               ? `${result.error.code}: ${result.error.message}`
               : "Unknown error occurred";
-            showStatus(`❌ Error: ${errorMsg}`, "error");
+            showModalStatus(`❌ Error: ${errorMsg}`, "error");
           }
         } catch (error) {
-          showStatus(`❌ Error: ${error.message}`, "error");
+          showModalStatus(`❌ Error: ${error.message}`, "error");
         } finally {
           submitBtn.disabled = false;
         }
       }
 
-      // Show status message
+      // Show status message (for page level)
       function showStatus(message, type) {
         const statusDiv = document.getElementById("statusMessage");
+        statusDiv.innerHTML = message;
+        statusDiv.className = `status-message status-${type}`;
+      }
+
+      // Show status message (for modal)
+      function showModalStatus(message, type) {
+        const statusDiv = document.getElementById("modalStatusMessage");
         statusDiv.innerHTML = message;
         statusDiv.className = `status-message status-${type}`;
       }
