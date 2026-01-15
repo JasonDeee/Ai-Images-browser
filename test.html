@@ -1,470 +1,681 @@
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Test Edit Image - Image3</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 16px; background:#f7f7f7; color:#111; }
-    header { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-    input[type=text] { padding:6px 8px; width:360px; }
-    button { padding:6px 10px; cursor:pointer; }
-    .category { margin-bottom:18px; }
-    .category h2 { margin:8px 0; }
-    .section { background:#fff; padding:12px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:10px; }
-    .section h3 { margin:0 0 8px 0; font-size:16px; }
-    .items { display:flex; gap:8px; flex-wrap:wrap; }
-    .item { width:160px; text-align:center; cursor:pointer; }
-    .item img { width:160px; height:120px; object-fit:cover; border-radius:6px; border:1px solid #ddd; }
-    .item p { margin:6px 0 0 0; font-size:13px; color:#444; word-break:break-word; }
-    /* Modal */
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:2000; }
-    .modal { background:#fff; padding:18px; border-radius:8px; width:720px; max-width:95%; box-shadow:0 4px 20px rgba(0,0,0,0.2); }
-    .modal .grid { display:flex; gap:12px; }
-    .modal img { max-width:280px; max-height:200px; object-fit:contain; border:1px solid #eee; border-radius:6px; }
-    .field { margin-bottom:8px; }
-    .response { white-space:pre-wrap; background:#111; color:#fff; padding:10px; border-radius:6px; font-size:13px; max-height:220px; overflow:auto; }
-    footer { margin-top:18px; font-size:13px; color:#555; }
-    .result-image { margin-top:8px; max-width:240px; border:1px solid #ccc; border-radius:6px; }
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image3 API - Photo Gallery</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    /* Debug panel */
-    .debug-panel { margin-top:16px; background:#0b1220; color:#e6eef8; border-radius:8px; padding:12px; box-shadow:0 2px 12px rgba(0,0,0,0.2); }
-    .debug-controls { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
-    .debug-log { background:#071021; color:#cfe8ff; padding:8px; border-radius:6px; font-family:monospace; font-size:12px; max-height:320px; overflow:auto; white-space:pre-wrap; border:1px solid rgba(255,255,255,0.04); }
-    .debug-meta { font-size:12px; color:#9fb7d9; margin-bottom:8px; }
-    .small { font-size:12px; color:#9fb7d9; }
-    .debug-toggle { margin-left:auto; }
-    .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.06); color:inherit; padding:6px 8px; border-radius:6px; cursor:pointer; }
-    .checkbox-inline { display:inline-flex; gap:6px; align-items:center; font-size:13px; }
-  </style>
-</head>
-<body>
-  <header>
-    <div>
-      <label><strong>Sample JSON URL:</strong></label><br />
-      <input id="dataUrl" type="text" value="https://jasondeee.github.io/Ai-Images-browser/sampleData.json" />
-    </div>
-    <div>
-      <label><strong>API URL (Edit Image endpoint base):</strong></label><br />
-      <input id="apiUrl" type="text" value="https://pic88.top" />
-    </div>
-    <div style="align-self:end">
-      <button id="reloadBtn">Load data</button>
-    </div>
-  </header>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-  <main id="content">
-    <p>Loading data...</p>
-  </main>
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
 
-  <!-- Modal -->
-  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
-    <div class="modal" role="document">
-      <h3 id="modalTitle">Edit Image</h3>
-      <div class="grid">
-        <div style="flex:0 0 300px;">
-          <label>Selected item (dataset):</label>
-          <div style="margin:8px 0">
-            <img id="datasetPreview" src="" alt="dataset" />
-            <p id="datasetId" style="font-size:13px; margin:6px 0 0 0; color:#333"></p>
-          </div>
-          <label>Your image to upload:</label>
-          <div style="margin:8px 0">
-            <input id="fileInput" type="file" accept="image/*" />
-            <div id="userPreviewWrap" style="margin-top:8px;">
-              <img id="userPreview" src="" alt="user" style="max-width:260px; max-height:160px; display:none; border-radius:6px; border:1px solid #eee;" />
-            </div>
-          </div>
+      h1 {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .loading {
+        text-align: center;
+        color: white;
+        font-size: 1.5em;
+        padding: 50px;
+      }
+
+      .category {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .category-title {
+        font-size: 2em;
+        color: #667eea;
+        margin-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .section {
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 1.5em;
+        color: #764ba2;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-prompt {
+        font-size: 0.9em;
+        color: #666;
+        font-style: italic;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 5px;
+      }
+
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .gallery-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .gallery-item-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        color: white;
+        padding: 15px;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+
+      .gallery-item:hover .gallery-item-overlay {
+        transform: translateY(0);
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 2% auto;
+        padding: 30px;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+
+      .close:hover {
+        color: #000;
+      }
+
+      .modal-title {
+        font-size: 1.8em;
+        color: #667eea;
+        margin-bottom: 20px;
+        clear: both;
+      }
+
+      .preview-image {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 2px solid #667eea;
+      }
+
+      .upload-section {
+        margin: 20px 0;
+      }
+
+      .upload-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-input-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        width: 100%;
+        transition: transform 0.2s;
+      }
+
+      .file-input-button:hover {
+        transform: scale(1.02);
+      }
+
+      .file-input-wrapper input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+
+      .user-image-preview {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 10px;
+        margin-top: 15px;
+        border: 2px solid #764ba2;
+      }
+
+      .caption-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1em;
+        margin-top: 10px;
+        transition: border-color 0.3s;
+      }
+
+      .caption-input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .submit-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        width: 100%;
+        margin-top: 20px;
+        transition: transform 0.2s;
+        font-weight: bold;
+      }
+
+      .submit-button:hover:not(:disabled) {
+        transform: scale(1.02);
+      }
+
+      .submit-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .status-message {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .status-loading {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .result-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 10px;
+        margin-top: 15px;
+        border: 2px solid #28a745;
+      }
+
+      .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+      }
+
+      .info-box strong {
+        color: #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎨 Image3 API - Photo Gallery</h1>
+      <div id="loading" class="loading">Loading gallery...</div>
+      <div id="gallery-container"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="uploadModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 class="modal-title">Upload Your Photo</h2>
+
+        <div class="info-box">
+          <strong>Selected Template:</strong>
+          <div id="selectedInfo"></div>
         </div>
 
-        <div style="flex:1;">
-          <div class="field">
-            <label>Optional caption / instruction (sent as "caption"):</label>
-            <textarea id="captionInput" rows="4" style="width:100%;"></textarea>
-          </div>
+        <img
+          id="previewImage"
+          class="preview-image"
+          src=""
+          alt="Template Preview"
+        />
 
-          <div class="field">
-            <label>Optional additional headers (JSON) — useful for auth (example: {"Authorization":"Bearer TOKEN"})</label>
-            <textarea id="headersInput" rows="4" style="width:100%;">{}</textarea>
+        <div class="upload-section">
+          <label class="upload-label">Upload Your Photo:</label>
+          <div class="file-input-wrapper">
+            <button class="file-input-button">Choose File</button>
+            <input type="file" id="userImageInput" accept="image/*" />
           </div>
-
-          <div style="margin-top:12px;">
-            <button id="submitBtn">Submit to Edit Image endpoint</button>
-            <button id="closeBtn" style="margin-left:8px">Close</button>
-          </div>
-
-          <div style="margin-top:12px;">
-            <label>Response:</label>
-            <div id="responseArea" class="response">No response yet.</div>
-          </div>
-
-          <div id="resultImageWrap" style="margin-top:8px; display:none;">
-            <label>Returned image:</label>
-            <div><img id="resultImage" class="result-image" src="" alt="result" /></div>
-          </div>
+          <img
+            id="userImagePreview"
+            class="user-image-preview"
+            style="display: none"
+          />
         </div>
+
+        <div class="upload-section">
+          <label class="upload-label"
+            >Caption (describe changes you want):</label
+          >
+          <textarea
+            id="captionInput"
+            class="caption-input"
+            rows="3"
+            placeholder="Example: I want purple hair and glasses"
+          ></textarea>
+        </div>
+
+        <button id="submitButton" class="submit-button">Generate Image</button>
+
+        <div id="statusMessage"></div>
+        <img id="resultImage" class="result-image" style="display: none" />
       </div>
     </div>
-  </div>
 
-  <!-- Debug panel -->
-  <div id="debugPanel" class="debug-panel" aria-live="polite">
-    <div class="debug-controls">
-      <strong class="small">Debug Log</strong>
-      <button id="clearLogBtn" class="btn-ghost">Clear</button>
-      <button id="copyLogBtn" class="btn-ghost">Copy</button>
-      <label class="checkbox-inline"><input id="autoScrollCheckbox" type="checkbox" checked /> Auto-scroll</label>
-      <label class="checkbox-inline"><input id="openOnSubmitCheckbox" type="checkbox" checked /> Open on submit</label>
-      <div class="debug-toggle"></div>
-    </div>
-    <div id="debugMeta" class="debug-meta">No logs yet.</div>
-    <div id="debugLog" class="debug-log"></div>
-  </div>
+    <script>
+      // Configuration
+      const API_URL = "https://pic88.top";
+      const DATA_URL = "https://clxteam.github.io/photo_gallery_data.json";
 
-  <footer>
-    <p>Notes: The page sends JSON { id: &lt;item.id&gt;, b64_image: &lt;base64 string without data: prefix&gt;, caption: &lt;text if provided&gt; } via POST to {API_URL}/image3/edit_image. Ensure CORS and authenticatio[...]</p>
-  </footer>
+      // API Credentials - REPLACE WITH YOUR ACTUAL VALUES
+      const API_KEY = "wellyzz135_demo_api_key_2023";
+      const IMAGE3_SECRET_KEY = "image3_signature_secret_key_2024!@#";
 
-  <script>
-    const content = document.getElementById('content');
-    const dataUrlInput = document.getElementById('dataUrl');
-    const apiUrlInput = document.getElementById('apiUrl');
-    const reloadBtn = document.getElementById('reloadBtn');
+      let selectedItem = null;
+      let userImageFile = null;
+      let userImageBase64 = null;
 
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const datasetPreview = document.getElementById('datasetPreview');
-    const datasetIdEl = document.getElementById('datasetId');
-    const fileInput = document.getElementById('fileInput');
-    const userPreview = document.getElementById('userPreview');
-    const captionInput = document.getElementById('captionInput');
-    const headersInput = document.getElementById('headersInput');
-    const submitBtn = document.getElementById('submitBtn');
-    const closeBtn = document.getElementById('closeBtn');
-    const responseArea = document.getElementById('responseArea');
-    const resultImageWrap = document.getElementById('resultImageWrap');
-    const resultImage = document.getElementById('resultImage');
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        loadGallery();
+        setupModal();
+      });
 
-    // Debug elements
-    const debugLogEl = document.getElementById('debugLog');
-    const debugMetaEl = document.getElementById('debugMeta');
-    const clearLogBtn = document.getElementById('clearLogBtn');
-    const copyLogBtn = document.getElementById('copyLogBtn');
-    const autoScrollCheckbox = document.getElementById('autoScrollCheckbox');
-    const openOnSubmitCheckbox = document.getElementById('openOnSubmitCheckbox');
-    const debugPanel = document.getElementById('debugPanel');
+      // Load gallery data
+      async function loadGallery() {
+        try {
+          const response = await fetch(DATA_URL);
+          const data = await response.json();
 
-    let selectedItem = null;
-    let selectedDatasetImgSrc = '';
-
-    // ---------- Fetch and render ----------
-    async function fetchAndRender() {
-      const url = dataUrlInput.value.trim();
-      content.innerHTML = '<p>Loading data...</p>';
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Failed to fetch sample JSON: ' + res.status);
-        const data = await res.json();
-        renderData(data);
-      } catch (err) {
-        content.innerHTML = '<p style="color:red">Error loading data: ' + err.message + '</p>';
+          document.getElementById("loading").style.display = "none";
+          renderGallery(data);
+        } catch (error) {
+          document.getElementById(
+            "loading"
+          ).innerHTML = `<div style="color: #ff6b6b;">Error loading gallery: ${error.message}</div>`;
+        }
       }
-    }
 
-    function renderData(data) {
-      if (!data || !Array.isArray(data.categories)) {
-        content.innerHTML = '<p>No categories found in data.</p>';
-        return;
-      }
-      content.innerHTML = '';
-      data.categories.forEach(cat => {
-        const catEl = document.createElement('div');
-        catEl.className = 'category';
-        const catTitle = document.createElement('h2');
-        catTitle.textContent = cat.name || cat.id;
-        catEl.appendChild(catTitle);
+      // Render gallery
+      function renderGallery(data) {
+        const container = document.getElementById("gallery-container");
 
-        (cat.sections || []).forEach(section => {
-          const secEl = document.createElement('div');
-          secEl.className = 'section';
-          const secTitle = document.createElement('h3');
-          secTitle.textContent = section.title || section.id;
-          secEl.appendChild(secTitle);
+        data.categories.forEach((category) => {
+          const categoryDiv = document.createElement("div");
+          categoryDiv.className = "category";
 
-          if (section.prompt) {
-            const promptP = document.createElement('p');
-            promptP.style.fontSize = '13px';
-            promptP.style.color = '#666';
-            promptP.textContent = section.prompt;
-            secEl.appendChild(promptP);
-          }
+          let categoryHTML = `<h2 class="category-title">${category.name}</h2>`;
 
-          const itemsWrap = document.createElement('div');
-          itemsWrap.className = 'items';
-          (section.items || []).forEach(item => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'item';
-            const img = document.createElement('img');
-            img.src = item.image_link;
-            img.alt = item.id;
-            img.dataset.itemId = item.id;
-            img.dataset.imageLink = item.image_link;
-            img.addEventListener('click', () => openModalForItem(item.id, item.image_link));
-            const caption = document.createElement('p');
-            caption.textContent = item.id;
-            itemEl.appendChild(img);
-            itemEl.appendChild(caption);
-            itemsWrap.appendChild(itemEl);
+          category.sections.forEach((section) => {
+            categoryHTML += `
+                        <div class="section">
+                            <h3 class="section-title">📸 ${section.title}</h3>
+                            <div class="section-prompt">${section.prompt}</div>
+                            <div class="gallery">
+                    `;
+
+            section.items.forEach((item) => {
+              categoryHTML += `
+                            <div class="gallery-item" onclick="openModal('${item.id}', '${item.image_link}', '${section.title}', '${category.name}', '${section.prompt}')">
+                                <img src="${item.image_link}" alt="${item.id}">
+                                <div class="gallery-item-overlay">
+                                    <div>${item.id}</div>
+                                </div>
+                            </div>
+                        `;
+            });
+
+            categoryHTML += `
+                            </div>
+                        </div>
+                    `;
           });
 
-          secEl.appendChild(itemsWrap);
-          catEl.appendChild(secEl);
+          categoryDiv.innerHTML = categoryHTML;
+          container.appendChild(categoryDiv);
         });
-
-        content.appendChild(catEl);
-      });
-    }
-
-    function openModalForItem(itemId, imageLink) {
-      selectedItem = itemId;
-      selectedDatasetImgSrc = imageLink;
-      datasetPreview.src = imageLink;
-      datasetIdEl.textContent = 'id: ' + itemId;
-      fileInput.value = '';
-      userPreview.style.display = 'none';
-      userPreview.src = '';
-      captionInput.value = '';
-      responseArea.textContent = 'No response yet.';
-      resultImageWrap.style.display = 'none';
-      modalBackdrop.style.display = 'flex';
-      modalBackdrop.setAttribute('aria-hidden', 'false');
-    }
-
-    closeBtn.addEventListener('click', () => {
-      modalBackdrop.style.display = 'none';
-      modalBackdrop.setAttribute('aria-hidden', 'true');
-    });
-
-    fileInput.addEventListener('change', (ev) => {
-      const f = ev.target.files && ev.target.files[0];
-      if (!f) {
-        userPreview.style.display = 'none';
-        userPreview.src = '';
-        return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        userPreview.src = reader.result;
-        userPreview.style.display = 'block';
-      };
-      reader.readAsDataURL(f);
-    });
 
-    // ---------- Utility: File -> base64 (without prefix) ----------
-    function fileToBase64WithoutPrefix(file) {
-      return new Promise((resolve, reject) => {
+      // Setup modal
+      function setupModal() {
+        const modal = document.getElementById("uploadModal");
+        const closeBtn = document.querySelector(".close");
+        const fileInput = document.getElementById("userImageInput");
+        const submitBtn = document.getElementById("submitButton");
+
+        closeBtn.onclick = () => (modal.style.display = "none");
+
+        window.onclick = (event) => {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        };
+
+        fileInput.onchange = handleFileSelect;
+        submitBtn.onclick = handleSubmit;
+      }
+
+      // Open modal
+      function openModal(id, imageLink, sectionTitle, categoryName, prompt) {
+        selectedItem = { id, imageLink, sectionTitle, categoryName, prompt };
+
+        document.getElementById("selectedInfo").innerHTML = `
+                <div><strong>ID:</strong> ${id}</div>
+                <div><strong>Category:</strong> ${categoryName}</div>
+                <div><strong>Section:</strong> ${sectionTitle}</div>
+            `;
+
+        document.getElementById("previewImage").src = imageLink;
+        document.getElementById("uploadModal").style.display = "block";
+
+        // Reset form
+        document.getElementById("userImageInput").value = "";
+        document.getElementById("userImagePreview").style.display = "none";
+        document.getElementById("captionInput").value = "";
+        document.getElementById("statusMessage").innerHTML = "";
+        document.getElementById("resultImage").style.display = "none";
+        userImageFile = null;
+        userImageBase64 = null;
+      }
+
+      // Handle file selection
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        userImageFile = file;
+
+        // Show preview
         const reader = new FileReader();
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.onload = () => {
-          const result = reader.result;
-          const idx = result.indexOf(',');
-          if (idx >= 0) resolve(result.substring(idx + 1));
-          else resolve(result);
+        reader.onload = (e) => {
+          const preview = document.getElementById("userImagePreview");
+          preview.src = e.target.result;
+          preview.style.display = "block";
+
+          // Store base64 (remove data:image/...;base64, prefix)
+          userImageBase64 = e.target.result.split(",")[1];
         };
         reader.readAsDataURL(file);
-      });
-    }
-
-    // ---------- Debug logging helpers ----------
-    function ts() {
-      return new Date().toISOString();
-    }
-
-    function appendDebugLine(text) {
-      const line = '[' + ts() + '] ' + text;
-      debugLogEl.textContent += line + '\n';
-      debugMetaEl.textContent = 'Last entry: ' + ts();
-      if (autoScrollCheckbox.checked) {
-        debugLogEl.scrollTop = debugLogEl.scrollHeight;
-      }
-    }
-
-    function appendDebugObject(label, obj) {
-      const header = '[' + ts() + '] ' + label + ':';
-      let body;
-      try {
-        body = JSON.stringify(obj, null, 2);
-      } catch (e) {
-        body = String(obj);
-      }
-      debugLogEl.textContent += header + '\n' + body + '\n\n';
-      debugMetaEl.textContent = 'Last entry: ' + ts();
-      if (autoScrollCheckbox.checked) {
-        debugLogEl.scrollTop = debugLogEl.scrollHeight;
-      }
-    }
-
-    clearLogBtn.addEventListener('click', () => {
-      debugLogEl.textContent = '';
-      debugMetaEl.textContent = 'Cleared at: ' + ts();
-    });
-
-    copyLogBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(debugLogEl.textContent);
-        debugMetaEl.textContent = 'Copied to clipboard at: ' + ts();
-      } catch (e) {
-        debugMetaEl.textContent = 'Copy failed: ' + (e && e.message);
-      }
-    });
-
-    // ---------- Submit logic with enhanced debug ----------
-    submitBtn.addEventListener('click', async () => {
-      if (!selectedItem) {
-        alert('No item selected.');
-        return;
-      }
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) {
-        alert('Please choose an image file to upload.');
-        return;
       }
 
-      // Optionally open debug panel on submit
-      if (openOnSubmitCheckbox.checked) {
-        debugPanel.scrollIntoView({ behavior: 'smooth' });
+      // Authentication functions
+      function createSignature(secretKey, timestamp) {
+        const message = timestamp.toString();
+        return CryptoJS.HmacSHA256(message, secretKey).toString(
+          CryptoJS.enc.Base64
+        );
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      responseArea.textContent = 'Preparing image...';
+      async function getJWTToken() {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const signature = createSignature(IMAGE3_SECRET_KEY, timestamp);
 
-      const startTime = Date.now();
-
-      try {
-        const b64 = await fileToBase64WithoutPrefix(f);
-
-        // Build payload
-        const payload = {
-          id: selectedItem,
-          b64_image: b64,
-          caption: captionInput.value || ''
+        const headers = {
+          "X-API-Key": API_KEY,
+          "X-Timestamp": timestamp.toString(),
+          "X-Signature": signature,
+          "Content-Type": "application/x-www-form-urlencoded",
         };
 
-        // Try parse headers input; log attempt
-        let extraHeaders = {};
-        try {
-          extraHeaders = JSON.parse(headersInput.value || '{}');
-          appendDebugObject('Parsed extra headers', extraHeaders);
-        } catch (e) {
-          appendDebugLine('Headers JSON invalid: ' + e.message);
-          alert('Headers JSON invalid. Please fix or clear it.');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit to Edit Image endpoint';
+        const formData = new URLSearchParams();
+        formData.append("grant_type", "password");
+        formData.append("username", "test_user");
+        formData.append("password", "test_password");
+
+        const response = await fetch(`${API_URL}/token_image3`, {
+          method: "POST",
+          headers: headers,
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to get JWT token: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.access_token;
+      }
+
+      function generateUUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+          /[xy]/g,
+          function (c) {
+            const r = (Math.random() * 16) | 0;
+            const v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          }
+        );
+      }
+
+      async function getAuthHeaders() {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const signature = createSignature(IMAGE3_SECRET_KEY, timestamp);
+        const token = await getJWTToken();
+        const requestId = generateUUID();
+
+        return {
+          "X-API-Key": API_KEY,
+          "X-Timestamp": timestamp.toString(),
+          "X-Signature": signature,
+          Authorization: `Bearer ${token}`,
+          "X-Request-ID": requestId,
+          "User-Agent": "WellyAPI-Web/1.0 (Image3)",
+          Accept: "application/json",
+        };
+      }
+
+      // Handle submit
+      async function handleSubmit() {
+        if (!userImageFile) {
+          showStatus("Please select an image first", "error");
           return;
         }
 
-        appendDebugLine('Preparing request to Edit Image endpoint');
-        appendDebugLine('Selected dataset id: ' + selectedItem);
-        appendDebugObject('Dataset preview image link', { selectedDatasetImgSrc });
-        appendDebugObject('File metadata', { name: f.name, type: f.type, size: f.size });
-        appendDebugLine('Base64 image length (chars): ' + (b64 ? b64.length : 0));
-        appendDebugObject('Payload (object)', Object.assign({}, payload, { b64_image: '[base64 omitted]' }));
+        const caption = document.getElementById("captionInput").value.trim();
+        if (!caption) {
+          showStatus(
+            "Please enter a caption describing the changes you want",
+            "error"
+          );
+          return;
+        }
 
-        responseArea.textContent = 'Sending request to server...';
+        const submitBtn = document.getElementById("submitButton");
+        submitBtn.disabled = true;
+        showStatus("Processing... This may take up to 3 minutes", "loading");
 
-        const endpoint = (apiUrlInput.value.replace(/\/$/, '')) + '/image3/edit_image';
-        appendDebugLine('Endpoint: ' + endpoint);
-
-        const headersForFetch = Object.assign({ 'Content-Type': 'application/json' }, extraHeaders);
-        appendDebugObject('Headers sent', headersForFetch);
-
-        // Perform fetch and measure timing
-        const fetchStart = Date.now();
-        let res, resText;
         try {
-          res = await fetch(endpoint, {
-            method: 'POST',
-            mode: 'cors',
-            headers: headersForFetch,
-            body: JSON.stringify(payload)
+          // Get auth headers
+          const headers = await getAuthHeaders();
+
+          // Prepare form data
+          const formData = new FormData();
+          formData.append("image", userImageFile);
+          formData.append("caption", caption);
+          formData.append("user_instruction", "");
+          formData.append("template_id", selectedItem.id);
+          formData.append("image_base64", userImageBase64);
+
+          // Send request
+          const response = await fetch(`${API_URL}/image3/edit_image`, {
+            method: "POST",
+            headers: headers,
+            body: formData,
           });
-        } catch (networkErr) {
-          const elapsed = Date.now() - fetchStart;
-          appendDebugLine('Network error during fetch: ' + (networkErr && networkErr.message));
-          appendDebugObject('Network error (full)', networkErr && networkErr.stack ? { message: networkErr.message, stack: networkErr.stack } : networkErr);
-          responseArea.textContent = 'Network error: ' + (networkErr && networkErr.message);
-          throw networkErr;
-        }
-        const fetchElapsed = Date.now() - fetchStart;
-        appendDebugLine('Fetch completed in ' + fetchElapsed + ' ms. HTTP status: ' + res.status + ' ' + res.statusText);
 
-        // Collect response headers
-        const resHeaders = {};
-        try {
-          res.headers.forEach((v, k) => { resHeaders[k] = v; });
-        } catch (e) {
-          // older browsers may not support forEach on Headers
-          for (const pair of res.headers.entries()) {
-            resHeaders[pair[0]] = pair[1];
-          }
-        }
-        appendDebugObject('Response headers', resHeaders);
+          const result = await response.json();
 
-        // Read response text (full) and log
-        resText = await res.text();
-        appendDebugObject('Response body (text)', resText);
+          if (response.ok && result.success) {
+            showStatus("✅ Image generated successfully!", "success");
 
-        // Try to parse JSON
-        let json = null;
-        try {
-          json = JSON.parse(resText);
-          appendDebugObject('Response body (parsed JSON)', json);
-        } catch (e) {
-          appendDebugLine('Response body is not valid JSON: ' + (e && e.message));
-        }
+            // Display result image
+            const resultImg = document.getElementById("resultImage");
+            resultImg.src = `data:image/png;base64,${result.data[0].b64_json}`;
+            resultImg.style.display = "block";
 
-        // Outcome handling (existing UI)
-        if (res.ok) {
-          responseArea.textContent = JSON.stringify(json || resText, null, 2);
-          // If server returns result image in data[0].b64_json, show it
-          if (json && json.data && json.data.length > 0 && json.data[0].b64_json) {
-            const returnedB64 = json.data[0].b64_json;
-            resultImage.src = 'data:image/png;base64,' + returnedB64;
-            resultImageWrap.style.display = 'block';
-            appendDebugLine('Displayed returned result image (data[0].b64_json). Base64 length: ' + (returnedB64 ? returnedB64.length : 0));
+            // Download result
+            downloadImage(
+              result.data[0].b64_json,
+              `result_${selectedItem.id}_${Date.now()}.png`
+            );
           } else {
-            resultImageWrap.style.display = 'none';
-            appendDebugLine('No returned result image found in response.');
+            const errorMsg = result.error
+              ? `${result.error.code}: ${result.error.message}`
+              : "Unknown error occurred";
+            showStatus(`❌ Error: ${errorMsg}`, "error");
           }
-        } else {
-          responseArea.textContent = 'HTTP ' + res.status + '\\n' + (json ? JSON.stringify(json, null, 2) : resText);
-          resultImageWrap.style.display = 'none';
-          appendDebugLine('HTTP error: ' + res.status + '. Response written to response area.');
+        } catch (error) {
+          showStatus(`❌ Error: ${error.message}`, "error");
+        } finally {
+          submitBtn.disabled = false;
         }
-
-        const totalElapsed = Date.now() - startTime;
-        appendDebugLine('Total operation time: ' + totalElapsed + ' ms (including file read, encoding, fetch, processing)');
-      } catch (err) {
-        // Log error with stack
-        appendDebugLine('Error: ' + (err && err.message ? err.message : String(err)));
-        if (err && err.stack) {
-          appendDebugObject('Error stack', { stack: err.stack });
-        }
-        responseArea.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit to Edit Image endpoint';
       }
-    });
 
-    reloadBtn.addEventListener('click', fetchAndRender);
+      // Show status message
+      function showStatus(message, type) {
+        const statusDiv = document.getElementById("statusMessage");
+        statusDiv.innerHTML = message;
+        statusDiv.className = `status-message status-${type}`;
+      }
 
-    // initial load
-    fetchAndRender();
+      // Download image
+      function downloadImage(base64Data, filename) {
+        const link = document.createElement("a");
+        link.href = `data:image/png;base64,${base64Data}`;
+        link.download = filename;
+        link.click();
+      }
+    </script>
 
-    // initial debug meta
-    debugMetaEl.textContent = 'Ready. ' + ts();
-
-  </script>
-</body>
+    <!-- CryptoJS for HMAC-SHA256 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  </body>
 </html>
